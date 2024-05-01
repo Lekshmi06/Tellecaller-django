@@ -13,6 +13,10 @@ class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)        
 
+class LeadsAssignToTcSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Leads_assignto_tc
+        fields = '__all__'
 
 class LeadsAssignSerializer(serializers.ModelSerializer):
     class Meta:
