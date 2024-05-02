@@ -10,50 +10,29 @@ class LogRegister_Details(models.Model):
     is_staff = models.IntegerField(default=0)
     active_status = models.IntegerField(default=0)   
 
+    def __str__(self):
+        return self.log_username
+
 
 class EmployeeRegister_Details(models.Model):
     logreg_id = models.ForeignKey(LogRegister_Details, on_delete=models.CASCADE, null=True,default='')
-    # emp_comp_id = models.ForeignKey(BusinessRegister_Details, on_delete=models.CASCADE, null=True,default='')
-    # emp_department_id = models.ForeignKey(DepartmentRegister_details, on_delete=models.CASCADE, null=True,default='')
-    # emp_designation_id = models.ForeignKey(DesignationRegister_details, on_delete=models.CASCADE, null=True,default='')
     emp_name = models.CharField(max_length=255,default='',null=True,blank=True)
-    # emp_regId = models.CharField(max_length=255,default='',null=True,blank=True)
     emp_contact_no = models.CharField(max_length=255,default='',null=True,blank=True)
     emp_email =  models.EmailField(max_length=255,default='email@gmail.com')
-    # emp_profile = models.ImageField(upload_to='profiles',default='')
-    # emp_file = models.FileField(upload_to='employee_files',default='')
-    # emp_address1 =  models.CharField(max_length=255,default='',null=True,blank=True)
-    # emp_address2 =  models.CharField(max_length=255,default='',null=True,blank=True)
-    # emp_address3 =  models.CharField(max_length=255,default='',null=True,blank=True)
-    # emp_pin =  models.CharField(max_length=50,default='',null=True,blank=True)
-    # emp_location =  models.CharField(max_length=150,default='',null=True,blank=True)
-    # emp_district =  models.CharField(max_length=150,default='',null=True,blank=True)
-    # emp_state =  models.CharField(max_length=150,default='',null=True,blank=True)
-    # emp_active_status = models.IntegerField(default=0)
-    # emp_verify_status = models.IntegerField(default=0)
-    # emp_reg_date = models.DateField(auto_now_add=True,null=True)
+   
+    def __str__(self):
+        return self.emp_name
 
 class Leads(models.Model):
-    # lead_work_regId = models.ForeignKey(WorkRegister, on_delete=models.CASCADE, null=True,default='') 
-    # lead_collect_Emp_id = models.ForeignKey(EmployeeRegister_Details, on_delete=models.CASCADE, null=True,default='')
-    # lead_taskAssignId = models.ForeignKey(TaskAssign, on_delete=models.CASCADE, null=True,default='') 
-    # lead_category_id =  models.ForeignKey(LeadCategory_Register, on_delete=models.CASCADE, null=True,default='') 
-
+  
     lead_name = models.CharField(max_length=255,default='',null=True,blank=True)
     lead_email = models.EmailField(default='',null=True,blank=True)
     lead_contact = models.CharField(max_length=255,default='',null=True,blank=True)
-    # lead_source = models.CharField(max_length=255,default='',null=True,blank=True)
-    
-    # lead_add_date = models.DateField(auto_now_add=True,null=True)
-    # lead_add_time = models.TimeField(auto_now_add=True,null=True,blank=True)
-    # waste_data = models.IntegerField(default=0)
-    # waste_data_reason = models.TextField(default='',null=True,blank=True)
-    # lead_status = models.IntegerField(default=0)
-    # lead_transfer_date = models.DateField(auto_now_add=True,null=True)
-    # lead_transfer_status = models.IntegerField(default=0)
-    # lead_incomplete_status = models.IntegerField(default=0)
-    # target_update_status = models.IntegerField(default=0)
-    # repeated_status = models.IntegerField(default=0)    
+
+    def __str__(self):
+        return self.lead_name
+
+   
 
 class Leads_assignto_tc(models.Model):
     leadId = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True,default='')
@@ -67,6 +46,10 @@ class Leads_assignto_tc(models.Model):
     Next_update_date = models.DateField(auto_now_add=False,null=True)
     Update_Action = models.IntegerField(default=0)
     Status = models.IntegerField(default=0)
+
+    # def __str__(self):
+    #     return self.TC_Id
+
     # client_id = models.ForeignKey(ClientRegister, on_delete=models.CASCADE, null=True,default='')  
 
 
