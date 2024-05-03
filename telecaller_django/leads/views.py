@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -120,7 +120,40 @@ class FolowUpLeads(APIView):
     def get(self, request, *args, **kwargs):
         tc_id = self.kwargs['tc_id']  # Assuming you pass TC_Id in the URL
         leads_ids = Leads_assignto_tc.objects.filter(TC_Id=tc_id, Status=1).values_list('leadId', flat=True)
-        leads = Leads.objects.filter(id__in=leads_ids, lead_status=1)
+        leads = Leads.objects.filter(id__in=leads_ids)
         serializer = self.serializer_class(leads, many=True)
         return Response(serializer.data)    
+
+
+
+# class TodaysLeadView(APIView):
+#     serializer_class = LeadsSerializers
+
+#     def get(self, request, tc_id):
+#         today = date.today()
+#         leads = Leads_assignto_tc.objects.filter(
+#             TC_Id=tc_id,
+#             Update_Date__date=today,
+#         ) | Leads_assignto_tc.objects.filter(
+#             TC_Id=tc_id,
+#             Next_update_date__date=today,
+#         )
+#         serialized_leads = self.serializer_class(leads, many=True)
+#         return Response(serialized_leads.data)
+
+class TodaysLeadView(APIView):
+    serializer_class = LeadsSerializers
+
+    def get(self, request, tc_id):
+        today = date.today()
+        leads = Leads_assignto_tc.objects.filter(
+            TC_Id=tc_id,
+            Update_Date=today,
+        ) | Leads_assignto_tc.objects.filter(
+            TC_Id=tc_id,
+            Next_update_date=today,
+        )
+        serialized_leads = self.serializer_class(leads, many=True)
+        return Response(serialized_leads.data)
+
 
