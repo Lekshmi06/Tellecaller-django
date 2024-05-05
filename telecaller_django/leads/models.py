@@ -1,21 +1,34 @@
 from django.db import models
-
+from django.contrib.auth.models import AbstractUser
 # Create your models here.
-class LogRegister_Details(models.Model):
+# class CustomUser(models.Model):
+#     log_username = models.CharField(max_length=255,default='',null=True,blank=True)
+#     log_password = models.CharField(max_length=255,default='',null=True,blank=True)
+#     log_date = models.DateField(auto_now_add=True,null=True)
+#     log_time = models.TimeField(auto_now_add=True,null=True)
+#     position = models.CharField(max_length=255,default='',null=True,blank=True)
+#     is_staff = models.IntegerField(default=0)
+#     active_status = models.IntegerField(default=0)   
+
+#     def __str__(self):
+#         return self.log_username
+
+
+class CustomUser(AbstractUser):
+    # Add your custom fields here
     log_username = models.CharField(max_length=255,default='',null=True,blank=True)
     log_password = models.CharField(max_length=255,default='',null=True,blank=True)
-    log_date = models.DateField(auto_now_add=True,null=True)
-    log_time = models.TimeField(auto_now_add=True,null=True)
-    position = models.CharField(max_length=255,default='',null=True,blank=True)
+    log_date = models.DateField(auto_now_add=True, null=True)
+    log_time = models.TimeField(auto_now_add=True, null=True)
+    position = models.CharField(max_length=255, default='', null=True, blank=True)
     is_staff = models.IntegerField(default=0)
-    active_status = models.IntegerField(default=0)   
+    active_status = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.log_username
-
+        return self.username
 
 class EmployeeRegister_Details(models.Model):
-    logreg_id = models.ForeignKey(LogRegister_Details, on_delete=models.CASCADE, null=True,default='')
+    logreg_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True,default='')
     emp_name = models.CharField(max_length=255,default='',null=True,blank=True)
     emp_contact_no = models.CharField(max_length=255,default='',null=True,blank=True)
     emp_email =  models.EmailField(max_length=255,default='email@gmail.com')

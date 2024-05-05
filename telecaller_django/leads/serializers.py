@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from .models import (
-  LogRegister_Details, Leads, Leads_assignto_tc, EmployeeRegister_Details
+  CustomUser, Leads, Leads_assignto_tc, EmployeeRegister_Details
 )
 
 
 class  RegisterSerializers(serializers.ModelSerializer):
     class Meta:
-        model =  LogRegister_Details
+        model =  CustomUser
         fields = "__all__"
 
 class LoginSerializer(serializers.Serializer):

@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import status
-from .models import LogRegister_Details, Leads_assignto_tc, Leads
+from .models import CustomUser, Leads_assignto_tc, Leads
 from .serializers import LoginSerializer, RegisterSerializers, LeadsAssignToTcSerializer, LeadsSerializers
 
 from django.contrib.auth import authenticate
@@ -22,7 +22,7 @@ class RegisterAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     def get(self, request):
-        user = LogRegister_Details.objects.all()
+        user = CustomUser.objects.all()
         serializer = RegisterSerializers(user, many = True)
         return Response(serializer.data)
     
@@ -40,7 +40,7 @@ class UserLogin(APIView):
             password = serializer.validated_data.get('password')
 
             # Check if user exists
-            user = LogRegister_Details.objects.filter(log_username=username).first()
+            user = CustomUser.objects.filter(log_username=username).first()
             if user is None:
                 return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -98,7 +98,7 @@ class LeadsAssignToTcAPIView(APIView):
 #         if serializer.is_valid():
 #             log_username = serializer.validated_data['log_username']
 #             log_password = serializer.validated_data['log_password']
-#             user = LogRegister_Details.objects.filter(log_username=log_username, log_password=log_password).first()
+#             user = CustomUser.objects.filter(log_username=log_username, log_password=log_password).first()
 #             if user:
 #                 return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
 #             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
