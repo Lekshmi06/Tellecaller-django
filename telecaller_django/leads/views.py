@@ -8,9 +8,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import CustomUser, Leads_assignto_tc, Leads
-from .serializers import LoginSerializer, RegisterSerializers, LeadsAssignToTcSerializer, LeadsSerializers
+from .serializers import LoginSerializer, RegisterSerializers, LeadsAssignToTcSerializer, LeadsSerializers,EmployeeRegister_Details
 
 from django.contrib.auth import authenticate
 
@@ -40,7 +41,7 @@ class UserLogin(APIView):
             password = serializer.validated_data.get('password')
 
             # Check if user exists
-            user = CustomUser.objects.filter(log_username=username).first()
+            user = CustomUser.objects.filter(username=username).first()
             if user is None:
                 return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -108,52 +109,85 @@ class LeadsListView(APIView):
     serializer_class = LeadsSerializers
 
     def get(self, request, *args, **kwargs):
-        tc_id = self.kwargs['tc_id']  # Assuming you pass TC_Id in the URL
+        # tc_id = self.kwargs['tc_id']  # Assuming you pass TC_Id in the URL
+        custom_user_id = self.kwargs['tc_id']  # Assuming tc_id is the id of the CustomUser
+        tc_id = EmployeeRegister_Details.objects.get(logreg_id=custom_user_id)
         leads_ids = Leads_assignto_tc.objects.filter(TC_Id=tc_id).values_list('leadId', flat=True)
         leads = Leads.objects.filter(id__in=leads_ids)
         serializer = self.serializer_class(leads, many=True)
         return Response(serializer.data)
     
+
 class FolowUpLeads(APIView):
     serializer_class = LeadsSerializers
 
     def get(self, request, *args, **kwargs):
-        tc_id = self.kwargs['tc_id']  # Assuming you pass TC_Id in the URL
-        leads_ids = Leads_assignto_tc.objects.filter(TC_Id=tc_id, Status=1).values_list('leadId', flat=True)
+        custom_user_id = self.kwargs['tc_id']  # Assuming tc_id is the id of the CustomUser
+        employee_id = EmployeeRegister_Details.objects.get(logreg_id=custom_user_id)
+        print( employee_id )
+        leads_ids = Leads_assignto_tc.objects.filter(TC_Id=employee_id.id, Status=1).values_list('leadId', flat=True)
         leads = Leads.objects.filter(id__in=leads_ids)
         serializer = self.serializer_class(leads, many=True)
-        return Response(serializer.data)    
+        return Response(serializer.data)
 
 
 
 # class TodaysLeadView(APIView):
 #     serializer_class = LeadsSerializers
 
-#     def get(self, request, tc_id):
+#     def get(self, request,tc_id):
+#         custom_user_id = self.kwargs['tc_id']  # Assuming tc_id is the id of the CustomUser
+#         id = EmployeeRegister_Details.objects.get(logreg_id=custom_user_id)
+#         # leads_ids = Leads_assignto_tc.objects.filter(TC_Id=tc_id).values_list('leadId', flat=True)
+#         print(tc_id,"tc")
 #         today = date.today()
-#         leads = Leads_assignto_tc.objects.filter(
-#             TC_Id=tc_id,
-#             Update_Date__date=today,
+#         print(today,"date")
+#         leads_ids = Leads_assignto_tc.objects.filter(
+#             TC_Id=id,
+#             Update_Date=today,
 #         ) | Leads_assignto_tc.objects.filter(
-#             TC_Id=tc_id,
-#             Next_update_date__date=today,
-#         )
+#             TC_Id=id,
+#             Next_update_date=today,
+#         ).values_list('leadId', flat=True)
+#         print( leads_ids, "ids")
+#         leads = Leads.objects.filter(id__in=leads_ids)
 #         serialized_leads = self.serializer_class(leads, many=True)
 #         return Response(serialized_leads.data)
+
+
+from rest_framework.response import Response
+
+from itertools import chain
 
 class TodaysLeadView(APIView):
     serializer_class = LeadsSerializers
 
     def get(self, request, tc_id):
+        custom_user_id = self.kwargs['tc_id']  # Assuming tc_id is the id of the CustomUser
+        id = EmployeeRegister_Details.objects.get(logreg_id=custom_user_id)
         today = date.today()
-        leads = Leads_assignto_tc.objects.filter(
-            TC_Id=tc_id,
+
+        # Filter for leads with Update_Date=today
+        leads_update = Leads_assignto_tc.objects.filter(
+            TC_Id=id,
             Update_Date=today,
-        ) | Leads_assignto_tc.objects.filter(
-            TC_Id=tc_id,
-            Next_update_date=today,
         )
+
+        # Filter for leads with Next_update_date=today and get leadIds
+        leads_next_update = Leads_assignto_tc.objects.filter(
+            TC_Id=id,
+            Next_update_date=today,
+        ).values_list('leadId', flat=True)
+
+        # Get the leadIds from both querysets
+        lead_ids = list(chain(leads_update.values_list('leadId', flat=True), leads_next_update))
+
+        # Get the leads based on leadIds
+        leads = Leads.objects.filter(id__in=lead_ids)
+
+        # Serialize the leads
         serialized_leads = self.serializer_class(leads, many=True)
+
         return Response(serialized_leads.data)
 
 

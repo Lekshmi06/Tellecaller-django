@@ -1,17 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 # Create your models here.
-# class CustomUser(models.Model):
-#     log_username = models.CharField(max_length=255,default='',null=True,blank=True)
-#     log_password = models.CharField(max_length=255,default='',null=True,blank=True)
-#     log_date = models.DateField(auto_now_add=True,null=True)
-#     log_time = models.TimeField(auto_now_add=True,null=True)
-#     position = models.CharField(max_length=255,default='',null=True,blank=True)
-#     is_staff = models.IntegerField(default=0)
-#     active_status = models.IntegerField(default=0)   
 
-#     def __str__(self):
-#         return self.log_username
 
 
 class CustomUser(AbstractUser):
@@ -25,7 +15,7 @@ class CustomUser(AbstractUser):
     active_status = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.username
+        return f"({self.log_username} {self.id})"
 
 class EmployeeRegister_Details(models.Model):
     logreg_id = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True,default='')
@@ -34,7 +24,8 @@ class EmployeeRegister_Details(models.Model):
     emp_email =  models.EmailField(max_length=255,default='email@gmail.com')
    
     def __str__(self):
-        return self.emp_name
+        return f"({self.emp_name} {self.id})"
+        # return self.emp_name
 
 class Leads(models.Model):
   
