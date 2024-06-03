@@ -34,21 +34,21 @@ class Leads(models.Model):
     lead_contact = models.CharField(max_length=255,default='',null=True,blank=True)
 
     def __str__(self):
-        return self.lead_name
+        return f"({self.lead_name} {self.id})" 
 
    
 
 class Leads_assignto_tc(models.Model):
-    leadId = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True,default='')
+    leadId = models.ForeignKey(Leads, on_delete=models.CASCADE, null=True,default='', related_name='assignments')
     # dataBank_ID = models.ForeignKey(DataBank, on_delete=models.CASCADE, null=True,default='')
     TC_Id =  models.ForeignKey(EmployeeRegister_Details, on_delete=models.CASCADE, null=True,default='')
     Response = models.CharField(max_length=255,default='',null=True,blank=True)
     Reason = models.CharField(max_length=255,default='',null=True,blank=True)
     Assign_Date = models.DateField(auto_now_add=True,null=True)
-    Allocate_time = models.TimeField(default='00:00:00')
+    Allocate_time = models.TimeField(default='00:00:00') #maybe ignore this too
     Update_Date = models.DateField(auto_now_add=False,null=True,)
     Next_update_date = models.DateField(auto_now_add=False,null=True)
-    Update_Action = models.IntegerField(default=0)
+    Update_Action = models.IntegerField(default=0) #ignore
     Status = models.IntegerField(default=0)
 
     # def __str__(self):

@@ -11,8 +11,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import CustomUser, Leads_assignto_tc, Leads
-from .serializers import LoginSerializer, RegisterSerializers, LeadsAssignToTcSerializer, LeadsSerializers,EmployeeRegister_Details
-
+from .serializers import LoginSerializer, RegisterSerializers, LeadsAssignToTcSerializer, LeadsSerializers,EmployeeRegister_Details, LeadsWithStatusSerializer
 from django.contrib.auth import authenticate
 
 class RegisterAPIView(APIView):
@@ -93,29 +92,30 @@ class LeadsAssignToTcAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# class LoginAPIView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         serializer = LoginSerializer(data=request.data)
-#         if serializer.is_valid():
-#             log_username = serializer.validated_data['log_username']
-#             log_password = serializer.validated_data['log_password']
-#             user = CustomUser.objects.filter(log_username=log_username, log_password=log_password).first()
-#             if user:
-#                 return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
-#             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class LeadsListView(APIView):
-    serializer_class = LeadsSerializers
+    serializer_class = LeadsWithStatusSerializer
 
     def get(self, request, *args, **kwargs):
-        # tc_id = self.kwargs['tc_id']  # Assuming you pass TC_Id in the URL
-        custom_user_id = self.kwargs['tc_id']  # Assuming tc_id is the id of the CustomUser
+        custom_user_id = self.kwargs['tc_id']
         tc_id = EmployeeRegister_Details.objects.get(logreg_id=custom_user_id)
         leads_ids = Leads_assignto_tc.objects.filter(TC_Id=tc_id).values_list('leadId', flat=True)
         leads = Leads.objects.filter(id__in=leads_ids)
         serializer = self.serializer_class(leads, many=True)
         return Response(serializer.data)
+
+
+
+# class LeadsListView(APIView):
+#     serializer_class = LeadsSerializers
+
+#     def get(self, request, *args, **kwargs):
+#         # tc_id = self.kwargs['tc_id']  # Assuming you pass TC_Id in the URL
+#         custom_user_id = self.kwargs['tc_id']  # Assuming tc_id is the id of the CustomUser
+#         tc_id = EmployeeRegister_Details.objects.get(logreg_id=custom_user_id)
+#         leads_ids = Leads_assignto_tc.objects.filter(TC_Id=tc_id).values_list('leadId', flat=True)
+#         leads = Leads.objects.filter(id__in=leads_ids)
+#         serializer = self.serializer_class(leads, many=True)
+#         return Response(serializer.data)
     
 
 class FolowUpLeads(APIView):
@@ -129,8 +129,78 @@ class FolowUpLeads(APIView):
         leads = Leads.objects.filter(id__in=leads_ids)
         serializer = self.serializer_class(leads, many=True)
         return Response(serializer.data)
+#--------------
+# class LeadsAssigntoTcView(APIView):
+#     def post(self, request):
+#         custom_user_id = self.kwargs['tc_id']
+#         tc_id = EmployeeRegister_Details.objects.get(logreg_id=custom_user_id)
+
+#         data = request.data.copy()
+#         data['TC_Id'] = tc_id # Assign the primary key of tc_id to TC_Id field
+
+#         serializer =  LeadsAssignToTcSerializer(data=data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# class LeadsAssigntoTcView(APIView):
+#     def post(self, request, tc_id, format=None):
+#         # Use tc_id from URL to get EmployeeRegister_Details
+#         try:
+#             tc_id_obj = EmployeeRegister_Details.objects.get(logreg_id=tc_id)
+#         except EmployeeRegister_Details.DoesNotExist:
+#             return Response({"error": "EmployeeRegister_Details not found"}, status=status.HTTP_404_NOT_FOUND)
+
+#         # Update request data with TC_Id
+#         data = request.data.copy()
+#         data['TC_Id'] = tc_id_obj.pk  # Assign the primary key of tc_id_obj to TC_Id field
+
+#         serializer = LeadsAssignToTcSerializer(data=data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LeadsAssigntoTcView(APIView):
+    def post(self, request, tc_id, format=None):
+        # Get the tc_id object
+        tc_id_obj = EmployeeRegister_Details.objects.get(logreg_id=tc_id)
+
+        # Get the leadId from the request data
+        lead_id = request.data.get('leadId')
+        # Retrieve the Leads instance
+        lead_instance = Leads.objects.get(id=lead_id)
+
+        # Update request data with TC_Id and Leads instance
+        data = request.data.copy()
+        data['TC_Id'] = tc_id_obj
+        data['leadId'] = lead_instance
+        # Retrieve or create Leads_assignto_tc object
+        leads_assign_to_tc, created = Leads_assignto_tc.objects.get_or_create(
+            leadId=lead_instance, TC_Id=tc_id_obj,
+            defaults=data
+        )
+
+        # Update the fields if the object already exists
+        if not created:
+            for key, value in data.items():
+                setattr(leads_assign_to_tc, key, value)
+            leads_assign_to_tc.save()
+
+        serializer =  LeadsAssignToTcSerializer(leads_assign_to_tc)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class LeadDetail(APIView):
+    def get(self, request, pk):
+        try:
+            lead = Leads.objects.get(pk=pk)
+        except Leads.DoesNotExist:
+            return Response({"message": "Lead not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = LeadsSerializers(lead)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # class TodaysLeadView(APIView):
 #     serializer_class = LeadsSerializers

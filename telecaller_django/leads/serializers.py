@@ -50,3 +50,9 @@ class EmployeeRegisterSerializer(serializers.ModelSerializer):
         model = EmployeeRegister_Details
         fields = "__all__"
 
+class LeadsWithStatusSerializer(serializers.ModelSerializer):
+    status = serializers.IntegerField(source='assignments.first.Status', read_only=True)
+
+    class Meta:
+        model = Leads
+        fields = '__all__'
